@@ -116,34 +116,61 @@ class Block(ABC, persistent.Persistent):
 
         chain = blockchain.chain # This object of type Blockchain may be useful
 
+        all_blocks = chain.get_chain_ending_with(self.hash)
+        # print(all_blocks)
         # Placeholder for (1a)
 
         # (checks that apply to all blocks)
         # Check that Merkle root calculation is consistent with transactions in block (use the calculate_merkle_root function) [test_rejects_invalid_merkle]
         # On failure: return False, "Merkle root failed to match"
 
+        if self.merkle != self.calculate_merkle_root():
+            return False, "Merkle root failed to match"
+
         # Check that block.hash is correctly calculated [test_rejects_invalid_hash]
         # On failure: return False, "Hash failed to match"
 
+        if self.hash != self.calculate_hash():
+            return False, "Hash failed to match"
+
         # Check that there are at most 900 transactions in the block [test_rejects_too_many_txs]
         # On failure: return False, "Too many transactions"
+
+        if len(self.transactions) > 900:
+            return False, "Too many transactions"
 
         # (checks that apply to genesis block)
             # Check that height is 0 and parent_hash is "genesis" [test_invalid_genesis]
             # On failure: return False, "Invalid genesis"
 
+        if self.is_genesis:
+            if (self.height != 0 or self.parent_hash != "genesis"):
+                return False, "Invalid genesis"
+
         # (checks that apply only to non-genesis blocks)
+        if not self.is_genesis:
+
             # Check that parent exists (you may find chain.blocks helpful) [test_nonexistent_parent]
             # On failure: return False, "Nonexistent parent"
+            if self.parent_hash not in chain.blocks:
+                return False, "Nonexistent parent"
+            else: 
+                parent = chain.blocks[self.parent_hash]
 
-            # Check that height is correct w.r.t. parent height [test_bad_height]
-            # On failure: return False, "Invalid height"
+                # Check that height is correct w.r.t. parent height [test_bad_height]
+                # On failure: return False, "Invalid height"
+                if self.height != parent.height + 1:
+                    return False, "Invalid height"
 
-            # Check that timestamp is non-decreasing [test_bad_timestamp]
-            # On failure: return False, "Invalid timestamp"
+                # Check that timestamp is non-decreasing [test_bad_timestamp]
+                # On failure: return False, "Invalid timestamp"
+                if self.timestamp < parent.timestamp:
+                    return False, "Invalid timestamp"
 
             # Check that seal is correctly computed and satisfies "target" requirements; use the provided seal_is_valid method [test_bad_seal]
             # On failure: return False, "Invalid seal"
+            if not self.seal_is_valid():
+                return False, "Invalid seal"
 
             # Check that all transactions within are valid (use tx.is_valid) [test_malformed_txs]
             # On failure: return False, "Malformed transaction included"

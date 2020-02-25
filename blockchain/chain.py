@@ -87,12 +87,15 @@ class Blockchain(persistent.Persistent):
         Returns:
             (:obj:`list` of str): list of all blocks in the chain between desired block and genesis, in the descending order of height. 
         """
+        chain = []
 
-        # (hint): you may find the is_genesis flag helpful in this method
-        # as well as the self.blocks data structure
-
-        # Placeholder for (1a)
-        return [block_hash]
+        if block_hash in self.blocks: 
+            block = self.blocks[block_hash]
+            while not block.is_genesis:
+                chain.append(block.hash)
+                block = self.blocks[block.parent_hash]
+            chain.append(block.hash)
+        return chain
 
     def get_all_block_weights(self):
         """ Get total weight for every block in the blockchain database.
