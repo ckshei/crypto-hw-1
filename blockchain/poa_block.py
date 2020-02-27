@@ -48,7 +48,14 @@ class PoABlock(Block):
         # encode result as int and set using set_seal_data
         # make sure to check that output is valid seal with provided code
         # (if seal is invalid, repeat)
+        private_key = self.get_private_key()
+        signing_key = SigningKey.from_string(private_key)
 
+        sig = signing_key.sign(self.unsealed_header().encode("utf-8"))
+        self.set_seal_data(int(sig.hex(), 16))
+
+        if not self.seal_is_valid():
+            return False
         # Placeholder for (1b)
         return
 
